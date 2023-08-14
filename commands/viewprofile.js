@@ -28,23 +28,51 @@ module.exports = {
 
         // Populate players ranks with assignables.
         const populatedPlayer = await EloPlayer.findOne({ discordID: player.id });
-        let message = `<@${player.id}>'s scoreboard:\n`;
-        message += `Elo: ${populatedPlayer.elo.toFixed(2)}\n`;
-        message += `PQ: ${populatedPlayer.pq.toFixed(2)}\n`;
 
         const numDuels = populatedPlayer.duels.length;
-        let numWins = 0;
+        let numBombWins = 0;
+        let numBombLosses = 0;
+        let numBladeWins = 0;
+        let numBladeLosses = 0;
         for (const duel of populatedPlayer.duels) {
             const duelObj = await Duel.findOne({ _id: duel });
             if (duelObj) {
-                const winner = duelObj.score1 > duelObj.score2 ? duelObj.player1 : duelObj.player2;
+                const winner = duelObj.player1Score > duelObj.player2Score ? duelObj.player1 : duelObj.player2;
                 if (winner == player.id) {
-                    numWins++;
+                    if (duelObj.duelType == 'bomb') {
+                        numBombWins++;
+                    }
+                    else {
+                        numBladeWins++;
+                    }
+                }
+                else {
+                    // Dumb linter error
+                    const x = y => y;
+                    x();
+                    if (duelObj.duelType == 'blade') {
+                        numBombLosses++;
+                    }
+                    else {
+                        numBladeLosses++;
+                    }
                 }
             }
         }
-        message += `Win Rate: ${(numWins * 100 / numDuels).toFixed(2)}%\n`;
-        message += `(${numWins} wins, ${numDuels - numWins} losses, ${numDuels} total)\n`;
+
+        let message = `<@${player.id}>'s scoreboard:\n`;
+        message += 'Bomb:\n';
+        message += `\tElo: ${populatedPlayer.bombElo.toFixed(2)}\n`;
+        message += `\tPQ: ${populatedPlayer.bombPQ.toFixed(2)}\n`;
+        message += `\tDiscrete Elo: ${populatedPlayer.bombDiscreteElo.toFixed(0)}\n`;
+        message += `\tWin Rate: ${(numBombWins * 100 / (numBombWins + numBombLosses)).toFixed(2)}%\n`;
+        message += `\t(${numBombWins} wins, ${numBombLosses} losses, ${numBombWins + numBombLosses} total)\n`;
+        message += 'Blade:\n';
+        message += `\tElo: ${populatedPlayer.bladeElo.toFixed(2)}\n`;
+        message += `\tPQ: ${populatedPlayer.bladePQ.toFixed(2)}\n`;
+        message += `\tDiscrete Elo: ${populatedPlayer.bladeDiscreteElo.toFixed(0)}\n`;
+        message += `\tWin Rate: ${(numBladeWins * 100 / (numBladeWins + numBladeLosses)).toFixed(2)}%\n`;
+        message += `\t(${numBladeWins} wins, ${numBladeLosses} losses, ${numBladeWins + numBladeLosses} total)\n`;
 
         return await interaction.reply({ content: message, ephemeral: false });
 	},

@@ -1,13 +1,11 @@
 const { SlashCommandBuilder } = require('discord.js');
 const { updateLeaderboard } = require('../utilities/scoreboardmanager');
-const { EloPlayer } = require('../models/eloPlayer');
-const { Duel } = require('../models/Duel');
-const { updateElo, updateRoundPQ } = require('../utilities/eloUtilities');
+const { addRecord } = require('../utilities/commandHandlers');
 
 
 module.exports = {
 	data: new SlashCommandBuilder()
-		.setName('record')
+		.setName('recordblade')
 		.setDescription('Records a duel between two players.')
         .addUserOption(option =>
             option.setName('player1')
@@ -52,63 +50,25 @@ module.exports = {
         const mod1 = interaction.options.getString('mod1');
         const mod2 = interaction.options.getString('mod2');
 
-        // Check if we have this player.
-        let player1Db = await EloPlayer.findOne({ discordID: player1.id });
-        let player2Db = await EloPlayer.findOne({ discordID: player2.id });
-
-        // If we don't, create a new one with average elo and pq.
-        if (!player1Db) {
-            player1Db = await EloPlayer.create({
-                discordID: player1.id,
-                elo: 10,
-                pq: 10,
-                duels: [],
-            });
-        }
-        // If we don't, create a new one with average elo and pq.
-        if (!player2Db) {
-            player2Db = await EloPlayer.create({
-                discordID: player2.id,
-                elo: 10,
-                pq: 10,
-                duels: [],
-            });
-        }
-
-        // Create a new duel object.
-        const duel = await Duel.create({
-            player1: player1,
-            player2: player2,
-            player1EloPrior: player1Db.elo,
-            player2EloPrior: player2Db.elo,
-            player1PQPrior: player1Db.pq,
-            player2PQPrior: player2Db.pq,
-            player1Score: player1Score,
-            player2Score: player2Score,
-            roundsPlayed: roundsPlayed,
-            timestamp: Date.now().toString(),
-        });
-
-        // Assign the duel to each user.
-        player1Db.duels.push(duel._id);
-        player2Db.duels.push(duel._id);
-
-        // Update the elo.
-        player1Db.elo += updateElo(player1Db, player2Db, player1Score, player2Score, roundsPlayed, 400, 32);
-        player2Db.elo += updateElo(player2Db, player1Db, player2Score, player1Score, roundsPlayed, 400, 32);
-
-        // Update the pq.
-        const pqDelta = updateRoundPQ(player1Db, player2Db, player1Score, player2Score, roundsPlayed, 10, 10);
-        player1Db.pq += pqDelta;
-        player2Db.pq -= pqDelta;
-
-        // Save to the database.
-        await player1Db.save();
-        await player2Db.save();
+        addRecord(
+            interaction,
+            'blade',
+            {
+                player1: player1,
+                score1: player1Score,
+                mod1: mod1,
+            },
+            {
+                player2: player2,
+                score2: player2Score,
+                mod2: mod2,
+            },
+            roundsPlayed,
+        );
 
         // Update the leaderboard.
         try {
-            await updateLeaderboard(interaction);
+            await updateLeaderboard(interaction, 'blade');
         }
         catch (error) {
             console.log(error);

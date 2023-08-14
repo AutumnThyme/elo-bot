@@ -10,18 +10,22 @@ module.exports = {
 		.addStringOption(option =>
 			option.setName('scoreboardname')
 			.setDescription('The name of the scoreboard, leave default for leaderboard.')
-			.setRequired(false)),
+			.setRequired(true)
+            .addChoices(
+                { name: 'bomb', value: 'bomb' },
+                { name: 'blade', value: 'blade' },
+            )),
 	async execute(interaction) {
         if (!interaction.member.roles.cache.some(role => role.name === 'Admin' || role.name === 'Mod')) {
 			return await interaction.reply({ content: 'You are not authorized to use this command.', ephemeral: true });
 		}
-		let scoreboardName = interaction.options.getString('scoreboardname');
-        if (!scoreboardName) {
-            scoreboardName = 'EloLeaderboard';
+		const scoreboardName = interaction.options.getString('scoreboardname');
+        if (!['bomb', 'blade'].includes(scoreboardName)) {
+            return await interaction.reply({ content: 'Must use type bomb or blade.', ephemeral: true });
         }
 
         // Check if we have a scoreboard object already.
-        const scoreboardDB = await Scoreboard.findOne({ name: scoreboardName });
+        const scoreboardDB = await Scoreboard.findOne({ name: `${scoreboardName} Leaderboard` });
 
         if (scoreboardDB) {
             return await interaction.reply({ content: `${scoreboardName} already exists...`, ephemeral: false });
@@ -33,14 +37,14 @@ module.exports = {
         const channelID = scoreboardMessage.channel.id;
         const messageID = scoreboardMessage.id;
         await Scoreboard.create({
-            name: scoreboardName,
+            name: `${scoreboardName} Leaderboard`,
             messageID: messageID,
             channelID: channelID,
             guildID: guildID,
         });
 
         // Update the leaderboard message.
-        await updateLeaderboard(interaction);
+        await updateLeaderboard(interaction, scoreboardName);
         return;
 	},
 };
