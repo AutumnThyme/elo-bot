@@ -50,7 +50,7 @@ module.exports = {
         const mod1 = interaction.options.getString('mod1');
         const mod2 = interaction.options.getString('mod2');
 
-        const id = addRecord(
+        const id = await addRecord(
             interaction,
             'blade',
             {
