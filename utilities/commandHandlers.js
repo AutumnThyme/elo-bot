@@ -132,6 +132,8 @@ const addRecord = async (interaction, duelType, player1Stats, player2Stats, roun
     // Save to the database.
     await player1Db.save();
     await player2Db.save();
+
+    return duel._id;
 };
 
 

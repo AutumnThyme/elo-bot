@@ -50,7 +50,7 @@ module.exports = {
         const mod1 = interaction.options.getString('mod1');
         const mod2 = interaction.options.getString('mod2');
 
-        addRecord(
+        const id = addRecord(
             interaction,
             'bomb',
             {
@@ -83,6 +83,7 @@ module.exports = {
         result += `Score: ${player1Score} - ${player2Score}\n`;
         const winner = player1Score > player2Score ? player1 : player2;
         result += `Winner: ${winner}\n`;
+        result += `Duel ID: ${id}\n`;
         return await interaction.reply({
             content: result,
             ephemeral: false,
