@@ -1,5 +1,5 @@
 const { EloPlayer } = require('../models/eloPlayer');
-const { Duel } = require('../models/Duel');
+const { Duel } = require('../models/duel');
 const { updateElo, updateRoundPQ, updateDiscreteElo } = require('../utilities/eloUtilities');
 
 const addRecord = async (interaction, duelType, player1Stats, player2Stats, roundsPlayed) => {
