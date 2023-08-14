@@ -1,6 +1,6 @@
 const { SlashCommandBuilder } = require('discord.js');
 const { EloPlayer } = require('../models/eloPlayer');
-const { Duel } = require('../models/Duel');
+const { Duel } = require('../models/duel');
 
 module.exports = {
 	data: new SlashCommandBuilder()
